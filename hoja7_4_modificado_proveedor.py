@@ -62,6 +62,14 @@ def verificar_tabla(conexion, nombre_tabla):
         existe = cursor.fetchone()[0]
     return existe
 
+
+# Función para verificar la existencia de un proveedor
+def verificar_proveedor(conexion, ruc):
+    with conexion.cursor() as cursor:
+        cursor.execute("SELECT 1 FROM Proveedor WHERE ruc = %s", (ruc,))
+        existe = cursor.fetchone()
+    return existe is not None
+
 # Función para grabar una fila en la base de datos PostgreSQL
 def grabarpos(fila):
     if not verificar_conexion():
@@ -82,6 +90,19 @@ def grabarpos(fila):
             if not verificar_tabla(conexion, "despacho"):
                 print("La tabla 'despacho' no existe.")
                 return
+
+            with conexion.cursor() as cursor:
+                
+                ruc = fila[2]
+                if not verificar_proveedor(conexion, ruc):
+                    proveedor = (fila[1], ruc, fila[9])
+                    cursor.execute("""
+                        INSERT INTO proveedor (razon_social, ruc, celular)
+                        VALUES (%s, %s, %s)
+                    """, proveedor)
+                    print("proveedor creado")
+
+                conexion.commit()
 
             with conexion.cursor() as cursor:
                 # Convertir el valor de cincuenta_soles a booleano
