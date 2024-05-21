@@ -62,7 +62,6 @@ def verificar_tabla(conexion, nombre_tabla):
         existe = cursor.fetchone()[0]
     return existe
 
-
 # Función para verificar la existencia de un proveedor
 def verificar_proveedor(conexion, rucp):
     with conexion.cursor() as cursor:
@@ -84,7 +83,7 @@ def grabarpos(fila):
             port="5432"
         ) as conexion:
             if not verificar_bd(conexion, "SISTRA"):
-                print("La base de datos 'transporte' no existe.")
+                print("La base de datos 'SISTRA' no existe.")
                 return
             
             if not verificar_tabla(conexion, "despacho"):
@@ -92,7 +91,6 @@ def grabarpos(fila):
                 return
 
             with conexion.cursor() as cursor:
-                
                 rucp = fila[2]
                 if not verificar_proveedor(conexion, rucp):
                     proveedor = (fila[1], rucp, fila[9])
@@ -100,18 +98,15 @@ def grabarpos(fila):
                         INSERT INTO proveedor (razon_social, rucp, celular)
                         VALUES (%s, %s, %s)
                     """, proveedor)
-                    print("proveedor creado")
+                    print("Proveedor creado")
 
                 conexion.commit()
 
             with conexion.cursor() as cursor:
                 # Convertir el valor de cincuenta_soles a booleano
-                if pd.isna(fila[13]):  # Si el valor es NaN, convertir a False
-                    fila[13] = False
-                else:
-                    fila[13] = bool(fila[13])  # Convertir a booleano
+                fila[13] = False if pd.isna(fila[13]) else bool(fila[13])
                 
-                 # Agregar el cliente al final de la fila
+                # Agregar el cliente al final de la fila
                 fila.append(cliente)
 
                 insert_query = """
@@ -126,7 +121,7 @@ def grabarpos(fila):
         print("Error al conectar o insertar en la base de datos:", e)
 
 # Función para leer y procesar las filas de la hoja de Excel
-def leerHoja(num_filas, num_columnas, datos_hoja):
+def leer_hoja(num_filas, num_columnas, datos_hoja):
     global fecha_str
     print("Iterando sobre todas las filas y columnas:")
     for i in range(num_filas):
@@ -137,13 +132,13 @@ def leerHoja(num_filas, num_columnas, datos_hoja):
             grabarpos(fila)
 
 # Función para leer el archivo Excel y la hoja específica
-def leerExcel(nhoja):
+def leer_excel(nhoja):
     url_excel = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS0je619Hmb2K6G9ExAL4H1oLo-IL_HAS9l0uB__zIv6Jq0aoEtMxtjJXjwEPvtnJvs5vvjM2-L5Ka4/pub?output=xlsx"
     hojas_excel = pd.read_excel(url_excel, sheet_name=None)
     for nombre_hoja, datos_hoja in hojas_excel.items():
         if nombre_hoja == nhoja:
             num_filas, num_columnas = datos_hoja.shape
-            leerHoja(num_filas, num_columnas, datos_hoja)
+            leer_hoja(num_filas, num_columnas, datos_hoja)
 
 # Main
 def main():
@@ -156,4 +151,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    leerExcel("Registro")
+    leer_excel("Registro")
