@@ -64,9 +64,9 @@ def verificar_tabla(conexion, nombre_tabla):
 
 
 # Función para verificar la existencia de un proveedor
-def verificar_proveedor(conexion, ruc):
+def verificar_proveedor(conexion, rucp):
     with conexion.cursor() as cursor:
-        cursor.execute("SELECT 1 FROM Proveedor WHERE ruc = %s", (ruc,))
+        cursor.execute("SELECT 1 FROM Proveedor WHERE rucp = %s", (rucp,))
         existe = cursor.fetchone()
     return existe is not None
 
@@ -77,13 +77,13 @@ def grabarpos(fila):
 
     try:
         with psycopg2.connect(
-            dbname="transporte",
+            dbname="SISTRA",
             user="postgres",
             password="postgresadmin",
             host="localhost",
             port="5432"
         ) as conexion:
-            if not verificar_bd(conexion, "transporte"):
+            if not verificar_bd(conexion, "SISTRA"):
                 print("La base de datos 'transporte' no existe.")
                 return
             
@@ -93,11 +93,11 @@ def grabarpos(fila):
 
             with conexion.cursor() as cursor:
                 
-                ruc = fila[2]
-                if not verificar_proveedor(conexion, ruc):
-                    proveedor = (fila[1], ruc, fila[9])
+                rucp = fila[2]
+                if not verificar_proveedor(conexion, rucp):
+                    proveedor = (fila[1], rucp, fila[9])
                     cursor.execute("""
-                        INSERT INTO proveedor (razon_social, ruc, celular)
+                        INSERT INTO proveedor (razon_social, rucp, celular)
                         VALUES (%s, %s, %s)
                     """, proveedor)
                     print("proveedor creado")
@@ -115,7 +115,7 @@ def grabarpos(fila):
                 fila.append(cliente)
 
                 insert_query = """
-                INSERT INTO despacho3 (
+                INSERT INTO despacho (
                     fecha_salida, razon_social, ruc, placa_tracto, placa_ramfla,
                     tipo_plataforma, mtc_dos_placas, apellidos_nombres, licencia, celular, usuario, serie, numero_guia, cincuenta_soles, tipo_mineral, cliente
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
